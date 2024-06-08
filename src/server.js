@@ -8,6 +8,7 @@ app.get("/api/articles/:name", async (req, res) => {
   const { name } = req.params;
 
   const article = await db.collection("articles").findOne({ name });
+
   if (article) {
     res.json(article);
   } else {
@@ -18,15 +19,19 @@ app.get("/api/articles/:name", async (req, res) => {
 app.put("/api/articles/:name/upvote", async (req, res) => {
   const { name } = req.params;
 
-  await db.collection("articles").updateOne({ name }, { $inc: { upvotes: 1 } });
-
+  await db.collection("articles").updateOne(
+    { name },
+    {
+      $inc: { upvotes: 1 },
+    }
+  );
   const article = await db.collection("articles").findOne({ name });
 
-  if (!article) {
+  if (article) {
+    res.json(article);
+  } else {
     res.send("That article doesn't exist");
   }
-
-  res.json(article);
 });
 
 app.post("/api/articles/:name/comments", async (req, res) => {
@@ -35,19 +40,37 @@ app.post("/api/articles/:name/comments", async (req, res) => {
 
   await db
     .collection("articles")
-    .updateOne({ name }, { $push: { comments: postedBy, text } });
+    .updateOne({ name }, { $push: { comments: { postedBy, text } } });
 
   const article = await db.collection("articles").findOne({ name });
 
-  if (article) {
-    res.json(article.comments);
-  } else {
-    res.send("That article doesn't exist");
+  if (!article) {
+    res.send("That article doesn't exist!");
   }
+
+  res.json(article);
+});
+
+app.get("/api/articles/:name/comments", async (req, res) => {
+  const { name } = req.params;
+
+  const article = await db.collection("articles").findOne({ name });
+
+  if (!article) {
+    res.send("That article doesn't exist!");
+  }
+
+  res.json(article.comments);
+});
+
+app.get("/api/drop-mongodb", async (req, res) => {
+  //await db.dropDatabase();
+
+  res.json("Deleted");
 });
 
 connectToDb(() => {
-  console.log("Successfuly connected to database!");
+  console.log("Successfully connected to database!");
   app.listen(8000, () => {
     console.log("Server is listening on port 8000");
   });
