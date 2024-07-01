@@ -66,3 +66,6 @@ press control C
 
 Add mongodb to express
 npm install mongodb
+
+install firebase
+npm install firebase-admin
